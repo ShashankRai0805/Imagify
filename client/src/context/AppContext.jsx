@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const AppContext = createContext();
 
@@ -18,14 +18,7 @@ export const AppProvider = ({ children }) => {
 
   const backendUrl = 'http://localhost:5000';
 
-  // Check if user is logged in on app start
-  useEffect(() => {
-    if (token) {
-      getUserCredits();
-    }
-  }, [token]);
-
-  const getUserCredits = async () => {
+  const getUserCredits = useCallback(async () => {
     try {
       const response = await fetch(`${backendUrl}/api/user/credits`, {
         headers: {
@@ -45,7 +38,14 @@ export const AppProvider = ({ children }) => {
     } catch (error) {
       console.error('Error fetching credits:', error);
     }
-  };
+  }, [token, backendUrl]);
+
+  // Check if user is logged in on app start
+  useEffect(() => {
+    if (token) {
+      getUserCredits();
+    }
+  }, [token, getUserCredits]);
 
   const loginUser = async (email, password) => {
     setLoading(true);
@@ -115,9 +115,7 @@ export const AppProvider = ({ children }) => {
   const generateImage = async (prompt) => {
     setLoading(true);
     try {
-      // This would connect to your image generation endpoint
-      // For now, we'll simulate the API call
-      const response = await fetch(`${backendUrl}/api/image/generate`, {
+      const response = await fetch(`${backendUrl}/api/image/generate-image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -130,9 +128,9 @@ export const AppProvider = ({ children }) => {
       
       if (data.success) {
         setCredits(prev => prev - 1); // Deduct credit
-        return { success: true, imageUrl: data.imageUrl };
+        return { success: true, imageUrl: data.image };
       } else {
-        return { success: false, message: data.message };
+        return { success: false, message: data.msg || data.message };
       }
     } catch (error) {
       console.error('Image generation error:', error);

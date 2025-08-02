@@ -3,8 +3,6 @@ import jwt from 'jsonwebtoken';
 const userAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     
-    console.log('Auth header received:', authHeader); // Debug log
-    
     if (!authHeader) {
         return res.status(401).json({
             success: false,
@@ -30,10 +28,9 @@ const userAuth = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('Decoded token:', decoded); // Debug log
 
         if (decoded.id) {
-            req.body.userId = decoded.id;
+            req.user = { id: decoded.id }; // Set user info on req.user instead of req.body
             next();
         } else {
             return res.status(401).json({
@@ -42,7 +39,6 @@ const userAuth = async (req, res, next) => {
             });
         }
     } catch (error) {
-        console.log('Token verification error:', error.message); // Debug log
         return res.status(401).json({
             success: false,
             msg: 'Token is not valid',

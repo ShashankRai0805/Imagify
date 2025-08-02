@@ -5,7 +5,8 @@ import FormData from 'form-data';
 const generateImage = async (req, res) => {
     try {
 
-        const { userId, prompt } = req.body;
+        const userId = req.user.id; // Get from req.user instead of req.body
+        const { prompt } = req.body;
 
         const user = await userModel.findById(userId);
 
@@ -36,7 +37,7 @@ const generateImage = async (req, res) => {
         const base64Image = Buffer.from(data, 'binary').toString('base64')
         const resultImage = `data:image/png;base64,${base64Image}`;
 
-        await userModel.findByIdAndUpdate(userId._id, { creditBalance: user.creditBalance - 1 });
+        await userModel.findByIdAndUpdate(userId, { creditBalance: user.creditBalance - 1 });
         res.json({
             success: true,
             msg: "Image generated successfully",
